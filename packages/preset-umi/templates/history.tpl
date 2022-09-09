@@ -1,6 +1,15 @@
-import { createHashHistory, createMemoryHistory, createBrowserHistory, History } from '{{{ historyPath }}}';
+import { createHashHistory, createMemoryHistory, createBrowserHistory, History, Path } from '{{{ historyPath }}}';
 
-let history: History;
+type LiteralUnion<T extends string> = T | Omit<T, T>;
+type RoutePath = {{{routePaths}}}
+type To = LiteralUnion<RoutePath> | Partial<Omit<Path, 'pathname'> & {
+  pathname: LiteralUnion<RoutePath>;
+}>
+
+let history: Omit<History, 'push' | 'replace'> & {
+  push(to: To, state?: any): void;
+  replace(to: To, state?: any): void;
+};
 let basename: string = '/';
 export function createHistory(opts: any) {
   let h;
@@ -16,11 +25,11 @@ export function createHistory(opts: any) {
   }
   history = h;
   const oldPush = h.push;
-  history.push = (to, state) => {
+  history.push = (to: To, state) => {
     oldPush(patchTo(to), state);
   };
   const oldReplace = h.replace;
-  history.replace = (to, state) => {
+  history.replace = (to: To, state) => {
     oldReplace(patchTo(to), state);
   };
   return h;

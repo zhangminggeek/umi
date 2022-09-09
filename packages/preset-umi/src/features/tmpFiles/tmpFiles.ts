@@ -93,7 +93,7 @@ export default (api: IApi) => {
             `${baseUrl}.umirc.ts`,
             `${baseUrl}**/*.d.ts`,
             `${baseUrl}**/*.ts`,
-            `${baseUrl}**/*.tsx`
+            `${baseUrl}**/*.tsx`,
           ],
         },
         null,
@@ -453,6 +453,16 @@ export default function EmptyRoute() {
         path: 'core/history.ts',
         tplPath: join(TEMPLATES_DIR, 'history.tpl'),
         context: {
+          routePaths: Object.keys(clonedRoutes)
+            .reduce((acc: string[], key: string) => {
+              const route = clonedRoutes[key];
+              if (!route.path || route.path === '*') {
+                return acc;
+              }
+              acc.push(`"${route.path}"`);
+              return acc;
+            }, [])
+            .join(' | '),
           historyPath,
         },
       });
@@ -510,7 +520,8 @@ export default function EmptyRoute() {
             path: join(rendererPath, 'dist/index.js'),
             exportMembers,
           })
-        ).join(', ')} } from '${rendererPath}';`,
+        ).join(', ')}
+          } from '${rendererPath}';`,
       );
       // umi/client/client/plugin
       exports.push('// umi/client/client/plugin');
@@ -521,10 +532,11 @@ export default function EmptyRoute() {
             path: umiPluginPath,
             exportMembers,
           })
-        ).join(', ')} } from '${umiPluginPath}';`,
+        ).join(', ')}
+  } from '${umiPluginPath}'; `,
       );
       // @@/core/history.ts
-      exports.push(`export { history, createHistory } from './core/history';`);
+      exports.push(`export { history, createHistory } from './core/history'; `);
       checkMembers({
         members: ['history', 'createHistory'],
         exportMembers,
@@ -532,7 +544,7 @@ export default function EmptyRoute() {
       });
       // @@/core/terminal.ts
       if (api.service.config.terminal !== false) {
-        exports.push(`export { terminal } from './core/terminal';`);
+        exports.push(`export { terminal } from './core/terminal'; `);
         checkMembers({
           members: ['terminal'],
           exportMembers,
@@ -567,9 +579,8 @@ export default function EmptyRoute() {
         });
         if (pluginExports.length) {
           exports.push(
-            `export { ${pluginExports.join(', ')} } from '${winPath(
-              join(api.paths.absTmpPath, plugin),
-            )}';`,
+            `export { ${pluginExports.join(', ')}
+} from '${winPath(join(api.paths.absTmpPath, plugin))}';`,
           );
         }
       }
